@@ -1,0 +1,55 @@
+version: "3"
+
+services:
+  db:
+    container_name: db
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--su-mysql", "--connect", "--innodb_initialized"]
+      interval: 1s
+      timeout: 5s
+      retries: 5
+    image: mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: database
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    networks:
+      - mynetwork
+    ports:
+      - 3306:3306
+
+  filler:
+    container_name: filler
+    restart: on-failure
+    volumes:
+      - ./data.csv:/data.csv
+    build:
+      context: .
+      dockerfile: Dockerfile_filler
+    depends_on:
+       db:
+         condition: service_healthy
+    networks:
+      - mynetwork
+
+  web:
+    container_name: web
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile_web
+    depends_on:
+       db:
+         condition: service_healthy
+       filler:
+         condition: service_started
+    networks:
+      - mynetwork
+    ports:
+      - "8000:8000"
+
+networks:
+  mynetwork:
+    driver: bridge
