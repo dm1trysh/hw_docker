@@ -36,6 +36,7 @@ GET /health - возвращает JSON {"status": "OK"}, статус 200\
 ## Installation
 
 docker: https://docs.docker.com/engine/install/ubuntu/
+
 для исользования docker без sudo прав:
 
 ```
